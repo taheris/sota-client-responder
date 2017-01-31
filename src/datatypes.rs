@@ -1,16 +1,16 @@
-use serde::de::{Deserialize, Deserializer, Error as SerdeError, MapVisitor, Visitor};
-use serde::de::value::MapVisitorDeserializer;
+use serde_json;
+use std::io;
 
 
-#[derive(Deserialize)]
-struct Event {
+#[derive(Deserialize, Debug)]
+pub struct Event {
     version: String,
     event:   String,
     data:    EventType
 }
 
-#[derive(Deserialize)]
-enum EventType {
+#[derive(Deserialize, Debug)]
+pub enum EventType {
     DownloadComplete {
         update_id:    String,
         update_image: String,
@@ -22,5 +22,21 @@ enum EventType {
     }
 }
 
-enum Error {
+
+#[derive(Debug)]
+pub enum Error {
+    Io(io::Error),
+    Json(serde_json::Error)
+}
+
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Error {
+        Error::Io(err)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Error {
+        Error::Json(err)
+    }
 }

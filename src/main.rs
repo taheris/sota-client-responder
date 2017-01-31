@@ -1,13 +1,15 @@
 #[macro_use] extern crate log;
 extern crate serde;
+#[macro_use] extern crate serde_derive;
 extern crate serde_json;
 extern crate unix_socket;
 
-use std::env;
-use std::io::{BufReader, Read, Write};
-use unix_socket::{UnixListener, UnixStream};
-
 mod datatypes;
+
+use datatypes::{Error, Event};
+use std::env;
+use std::io::{BufReader, Read};
+use unix_socket::{UnixListener, UnixStream};
 
 
 fn main() {
@@ -21,17 +23,17 @@ fn main() {
         }
 
         let mut stream = conn.unwrap();
-        let event = read_event(&mut stream);
+        let _ = read_event(&mut stream)
+            .map(|ev| debug!("event: {:?}", ev))
+            .map_err(|err| error!("couldn't read event: {:?}", err));
     }
 }
 
-fn read_event<T>(stream: &mut UnixStream) -> Result<Event<T>, Error>
-    where T: Decodable + Encodable
-{
+fn read_event(stream: &mut UnixStream) -> Result<Event, Error> {
     info!("New socket connection");
     let mut reader = BufReader::new(stream);
     let mut input  = String::new();
     reader.read_to_string(&mut input)?;
     debug!("socket input: {}", input);
-    input.parse()
+    Ok(serde_json::from_str(&input)?)
 }
