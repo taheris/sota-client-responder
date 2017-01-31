@@ -4,22 +4,16 @@ use std::io;
 
 #[derive(Deserialize, Debug)]
 pub struct Event {
-    version: String,
-    event:   String,
-    data:    EventType
+    pub version: String,
+    pub event:   String,
+    pub data:    DownloadComplete
 }
 
 #[derive(Deserialize, Debug)]
-pub enum EventType {
-    DownloadComplete {
-        update_id:    String,
-        update_image: String,
-        signature:    String
-    },
-    DownloadFailed {
-        update_id: String,
-        reason:    String
-    }
+pub struct DownloadComplete {
+    pub update_id:    String,
+    pub update_image: String,
+    pub signature:    String
 }
 
 
