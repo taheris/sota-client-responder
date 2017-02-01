@@ -1,5 +1,6 @@
 use serde_json;
 use std::io;
+use std::string::FromUtf8Error;
 
 
 #[derive(Deserialize, Debug)]
@@ -20,12 +21,19 @@ pub struct DownloadComplete {
 #[derive(Debug)]
 pub enum Error {
     Io(io::Error),
-    Json(serde_json::Error)
+    Json(serde_json::Error),
+    Utf8(FromUtf8Error)
 }
 
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {
         Error::Io(err)
+    }
+}
+
+impl From<FromUtf8Error> for Error {
+    fn from(err: FromUtf8Error) -> Error {
+        Error::Utf8(err)
     }
 }
 

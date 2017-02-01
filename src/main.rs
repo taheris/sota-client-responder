@@ -10,7 +10,8 @@ mod datatypes;
 use datatypes::{Error, Event};
 use std::env;
 use std::fs::{self, File, OpenOptions};
-use std::io::{BufReader, ErrorKind, Read, Write};
+use std::io::{BufReader, ErrorKind, Write};
+use std::process::Command;
 use unix_socket::{UnixListener, UnixStream};
 
 
@@ -44,8 +45,8 @@ fn main() {
 
         let mut stream = conn.unwrap();
         let _ = read_event(&mut stream)
-            .and_then(read_contents)
-            .and_then(|c| write_to_device(&mut device, &c))
+            .and_then(deb_description)
+            .and_then(|desc| write_to_device(&mut device, &desc))
             .map_err(|err| error!("{:?}", err));
     }
 }
@@ -56,15 +57,17 @@ fn read_event(stream: &mut UnixStream) -> Result<Event, Error> {
     Ok(serde_json::from_reader(reader)?)
 }
 
-fn read_contents(event: Event) -> Result<String, Error> {
-    debug!("event: {:?}", event);
-    let mut file = File::open(event.data.update_image)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-    Ok(contents)
+fn deb_description(event: Event) -> Result<String, Error> {
+    debug!("reading deb description for event: {:?}", event);
+    let output = Command::new("dpkg-deb")
+        .arg("-f")
+        .arg(event.data.update_image)
+        .arg("Description")
+        .output()?;
+    Ok(String::from_utf8(output.stdout)?)
 }
 
-fn write_to_device(device: &mut File, contents: &str) -> Result<(), Error> {
-    debug!("contents: {}", contents);
-    Ok(device.write_all(contents.as_bytes())?)
+fn write_to_device(device: &mut File, text: &str) -> Result<(), Error> {
+    debug!("writing to device: {}", text);
+    Ok(device.write_all(text.as_bytes())?)
 }
