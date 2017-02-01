@@ -29,7 +29,7 @@ fn main() {
             UnixListener::bind(&socket_path).expect("couldn't reopen events socket")
         }
 
-        Err(err) => panic!("couldn't open events socket: {}", err)
+        Err(err) => panic!("couldn't open events socket: {}", err),
     };
 
     let mut device = OpenOptions::new()
@@ -40,30 +40,34 @@ fn main() {
     for conn in events_socket.incoming() {
         if let Err(err) = conn {
             error!("couldn't read events socket: {}", err);
-            continue
+            continue;
         }
 
         let mut stream = conn.unwrap();
         let _ = read_event(&mut stream)
-            .and_then(deb_description)
+            .and_then(|ev| {
+                debug!("new event: {:?}", ev);
+                deb_field(&ev.data.update_image, "Maintainer")
+                    .and_then(|ref stdout| {
+                        if stdout == "Indicator Demo <demo@advancedtelematic.com>\n" {
+                            deb_field(&ev.data.update_image, "Description")
+                        } else {
+                            Err(Error::Custom("debian package not part of demo".to_string()))
+                        }
+                    })
+            })
             .and_then(|desc| write_to_device(&mut device, &desc))
             .map_err(|err| error!("{:?}", err));
     }
 }
 
 fn read_event(stream: &mut UnixStream) -> Result<Event, Error> {
-    debug!("new connection");
     let reader = BufReader::new(stream);
     Ok(serde_json::from_reader(reader)?)
 }
 
-fn deb_description(event: Event) -> Result<String, Error> {
-    debug!("reading deb description for event: {:?}", event);
-    let output = Command::new("dpkg-deb")
-        .arg("-f")
-        .arg(event.data.update_image)
-        .arg("Description")
-        .output()?;
+fn deb_field(deb: &str, field: &str) -> Result<String, Error> {
+    let output = Command::new("dpkg-deb").arg("-f").arg(deb).arg(field).output()?;
     Ok(String::from_utf8(output.stdout)?)
 }
 

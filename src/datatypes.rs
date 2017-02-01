@@ -20,6 +20,7 @@ pub struct DownloadComplete {
 
 #[derive(Debug)]
 pub enum Error {
+    Custom(String),
     Io(io::Error),
     Json(serde_json::Error),
     Utf8(FromUtf8Error)
