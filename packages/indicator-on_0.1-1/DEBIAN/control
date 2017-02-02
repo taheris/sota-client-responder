@@ -1,7 +1,0 @@
-Package: indicator-on
-Version: 0.1-1
-Section: base
-Priority: optional
-Architecture: amd64
-Maintainer: Indicator Demo <demo@advancedtelematic.com>
-Description: a

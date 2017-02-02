@@ -1,0 +1,7 @@
+Package: blinker-speed
+Version: 0.1-6
+Section: base
+Priority: optional
+Architecture: amd64
+Maintainer: Indicator Demo <demo@advancedtelematic.com>
+Description: 6
