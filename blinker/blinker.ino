@@ -4,12 +4,12 @@
 #define RELAY_ON  LOW
 #define RELAY_OFF HIGH
 
-#define TIME_WAIT  6000
-#define TIME_ON    1000
-#define TIME_OFF   2000
-#define TIME_DOT   1000
-#define TIME_DASH  2000
-#define TIME_MORSE 400
+#define TIME_WAIT  3000
+#define TIME_ON    500
+#define TIME_OFF   300
+#define TIME_DOT   500
+#define TIME_DASH  1000
+#define TIME_MORSE 300
 
 #define SEQ_WAIT  "w"
 #define SEQ_BLINK "b"
@@ -22,10 +22,7 @@ float speed    = 1;
 void setup() {
   Serial.begin(SERIAL_BAUD);
   pinMode(RELAY_PIN, OUTPUT);
-
-  digitalWrite(RELAY_PIN, RELAY_ON);
-  delay(2000);
-  digitalWrite(RELAY_PIN, RELAY_OFF);
+  ack();
 }
 
 void loop() {
@@ -59,7 +56,17 @@ void parseChar(char c) {
   case '7': speed = 7; break;
   case '8': speed = 8; break;
   case '9': speed = 9; break;
+  default : return;
   }
+  ack();
+}
+
+void ack() {
+  delay(200);
+  digitalWrite(RELAY_PIN, RELAY_ON);
+  delay(2000);
+  digitalWrite(RELAY_PIN, RELAY_OFF);
+  delay(200);
 }
 
 void wait() {
