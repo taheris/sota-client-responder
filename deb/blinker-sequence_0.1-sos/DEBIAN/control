@@ -1,7 +1,7 @@
-Package: blinker-switch
-Version: 0.1-on
+Package: blinker-sequence
+Version: 0.1-sos
 Section: base
 Priority: optional
 Architecture: amd64
 Maintainer: Indicator Demo <demo@advancedtelematic.com>
-Description: a
+Description: s

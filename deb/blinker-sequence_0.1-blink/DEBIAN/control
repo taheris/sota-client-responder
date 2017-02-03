@@ -1,7 +1,7 @@
-Package: blinker-switch
-Version: 0.1-off
+Package: blinker-sequence
+Version: 0.1-blink
 Section: base
 Priority: optional
 Architecture: amd64
 Maintainer: Indicator Demo <demo@advancedtelematic.com>
-Description: z
+Description: b

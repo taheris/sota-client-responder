@@ -4,106 +4,86 @@
 #define RELAY_ON  LOW
 #define RELAY_OFF HIGH
 
-#define TIME_SEQ  5000
-#define TIME_ON   1000
-#define TIME_OFF  2000
-#define TIME_DOT  1000
-#define TIME_DASH 2000
-#define TIME_WAIT 300
+#define TIME_WAIT  6000
+#define TIME_ON    1000
+#define TIME_OFF   2000
+#define TIME_DOT   1000
+#define TIME_DASH  2000
+#define TIME_MORSE 400
 
-#define SEQUENCE_START "--.."
-#define SEQUENCE_PARSE ".."
-#define SEQUENCE_SOS   "...---..."
+#define SEQ_WAIT  "w"
+#define SEQ_BLINK "b"
+#define SEQ_SOS   "...---...w"
 
-float         timeDivisor = 1;
-boolean       active      = false;
-boolean       blinking    = false;
-char*         sequence    = NULL;
-unsigned long lastTime    = 0;
+char* sequence = SEQ_WAIT;
+float speed    = 1;
 
 
 void setup() {
   Serial.begin(SERIAL_BAUD);
   pinMode(RELAY_PIN, OUTPUT);
-  morseSequence(SEQUENCE_START);
+
+  digitalWrite(RELAY_PIN, RELAY_ON);
+  delay(2000);
+  digitalWrite(RELAY_PIN, RELAY_OFF);
 }
 
 void loop() {
   if (Serial.available() > 0) {
     parseChar(Serial.read());
   }
-  if (!active) {
-    return;
-  }
 
-  unsigned long timeDelta = millis() - lastTime;
-  if (sequence && timeDelta >= TIME_SEQ/timeDivisor) {
-    morseSequence(sequence);
-  } else if (sequence) {
-  } else if (blinking && timeDelta >= TIME_ON/timeDivisor) {
-    blinkersOff();
-  } else if (!blinking && timeDelta >= TIME_OFF/timeDivisor) {
-    blinkersOn();
+  char* c = sequence;
+  while (*c) {
+    switch (*c++) {
+    case 'w': wait();      break;
+    case 'b': blink();     break;
+    case '.': morseDot();  break;
+    case '-': morseDash(); break;
+    }
   }
 }
+
 
 void parseChar(char c) {
-  sequence = NULL;
-
   switch (c) {
-    default:  active = false;
-    case 'a': active = true;
-    case '1': timeDivisor = 1;
-    case '2': timeDivisor = 2;
-    case '3': timeDivisor = 3;
-    case '4': timeDivisor = 4;
-    case '5': timeDivisor = 5;
-    case '6': timeDivisor = 6;
-    case '7': timeDivisor = 7;
-    case '8': timeDivisor = 8;
-    case '9': timeDivisor = 9;
-    case 's': sequence = SEQUENCE_SOS;
+  case 'w': sequence = SEQ_WAIT;  break;
+  case 'b': sequence = SEQ_BLINK; break;
+  case 's': sequence = SEQ_SOS;   break;
+  case '1': speed = 1; break;
+  case '2': speed = 2; break;
+  case '3': speed = 3; break;
+  case '4': speed = 4; break;
+  case '5': speed = 5; break;
+  case '6': speed = 6; break;
+  case '7': speed = 7; break;
+  case '8': speed = 8; break;
+  case '9': speed = 9; break;
   }
-
-  morseSequence(SEQUENCE_PARSE);
 }
 
-void blinkersOn() {
-  digitalWrite(RELAY_PIN, RELAY_ON);
-  blinking = true;
-  lastTime = millis();
-}
-
-void blinkersOff() {
+void wait() {
   digitalWrite(RELAY_PIN, RELAY_OFF);
-  blinking = false;
-  lastTime = millis();
+  delay(TIME_WAIT/speed);
 }
 
-void flashBlinkers(int ms) {
+void blink() {
   digitalWrite(RELAY_PIN, RELAY_ON);
-  delay(ms);
+  delay(TIME_ON/speed);
   digitalWrite(RELAY_PIN, RELAY_OFF);
-  blinking = false;
-  lastTime = millis();
+  delay(TIME_OFF/speed);
 }
 
 void morseDot() {
-  flashBlinkers(TIME_DOT/timeDivisor);
-  delay(TIME_WAIT/timeDivisor);
+  digitalWrite(RELAY_PIN, RELAY_ON);
+  delay(TIME_DOT/speed);
+  digitalWrite(RELAY_PIN, RELAY_OFF);
+  delay(TIME_MORSE/speed);
 }
 
 void morseDash() {
-  flashBlinkers(TIME_DASH/timeDivisor);
-  delay(TIME_WAIT/timeDivisor);
-}
-
-void morseSequence(char *sequence) {
-  char c;
-  while ((c = *sequence++)) {
-    switch (c) {
-    case '.': morseDot();
-    case '-': morseDash();
-    }
-  }
+  digitalWrite(RELAY_PIN, RELAY_ON);
+  delay(TIME_DASH/speed);
+  digitalWrite(RELAY_PIN, RELAY_OFF);
+  delay(TIME_MORSE/speed);
 }

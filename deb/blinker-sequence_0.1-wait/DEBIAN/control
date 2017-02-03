@@ -1,0 +1,7 @@
+Package: blinker-sequence
+Version: 0.1-wait
+Section: base
+Priority: optional
+Architecture: amd64
+Maintainer: Indicator Demo <demo@advancedtelematic.com>
+Description: w
